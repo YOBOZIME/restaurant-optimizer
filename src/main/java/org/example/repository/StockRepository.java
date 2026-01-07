@@ -33,10 +33,27 @@ public class StockRepository {
         return em.find(RestaurantStock.class, id);
     }
 
+    public RestaurantStock findByIdWithRelations(Long id) {
+        try {
+            return em.createQuery(
+                            "SELECT rs FROM RestaurantStock rs " +
+                                    "LEFT JOIN FETCH rs.restaurant " +
+                                    "LEFT JOIN FETCH rs.ingredient " +
+                                    "WHERE rs.id = :id",
+                            RestaurantStock.class
+                    )
+                    .setParameter("id", id)
+                    .getSingleResult();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     public List<RestaurantStock> findByRestaurantId(Long restaurantId) {
         return em.createQuery(
                         "SELECT rs FROM RestaurantStock rs " +
                                 "JOIN FETCH rs.ingredient " +
+                                "JOIN FETCH rs.restaurant " +
                                 "WHERE rs.restaurant.id = :restaurantId " +
                                 "ORDER BY rs.expirationDate",
                         RestaurantStock.class
@@ -55,7 +72,6 @@ public class StockRepository {
                 .getResultList();
     }
 
-    // AJOUTER CES NOUVELLES MÉTHODES
     public List<RestaurantStock> findExpiringBetween(Date startDate, Date endDate) {
         return em.createQuery(
                         "SELECT rs FROM RestaurantStock rs " +
@@ -91,7 +107,6 @@ public class StockRepository {
         ).getResultList();
     }
 
-    // Dans StockRepository.java
     public List<RestaurantStock> findByIngredientId(Long ingredientId) {
         return em.createQuery(
                         "SELECT rs FROM RestaurantStock rs " +
@@ -117,6 +132,16 @@ public class StockRepository {
         RestaurantStock stock = findById(id);
         if (stock != null) {
             em.remove(stock);
+        }
+    }
+
+    // Add this method if it doesn't exist
+    @Transactional
+    public void saveOrUpdate(RestaurantStock stock) {
+        if (stock.getId() == null) {
+            em.persist(stock);
+        } else {
+            em.merge(stock);
         }
     }
 }

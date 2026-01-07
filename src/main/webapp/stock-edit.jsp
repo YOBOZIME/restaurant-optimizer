@@ -24,6 +24,14 @@
             margin-bottom: 15px;
             display: none;
         }
+        .success-message {
+            color: #4CAF50;
+            background: #d4edda;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: none;
+        }
         .stock-info {
             background: #f5f5f5;
             padding: 15px;
@@ -41,6 +49,13 @@
         }
         .info-value {
             flex: 1;
+        }
+        .uneditable-info {
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border-left: 4px solid #2196F3;
         }
     </style>
 </head>
@@ -60,29 +75,37 @@
     <div style="max-width: 600px; margin: 30px auto;">
         <div class="card">
             <h2 style="margin-bottom: 20px;">
-                <i class="fas fa-edit"></i> Modifier le Stock
+                <i class="fas fa-edit"></i> Modifier le Stock #${stock.id}
             </h2>
 
             <div id="errorMessage" class="error-message"></div>
+            <div id="successMessage" class="success-message"></div>
 
-            <!-- Stock information -->
-            <div id="stockInfo" class="stock-info" style="display: none;">
+            <!-- Stock information (uneditable) -->
+            <div class="uneditable-info">
+                <div style="font-weight: 500; margin-bottom: 10px; color: #2196F3;">
+                    <i class="fas fa-info-circle"></i> Informations (non modifiables)
+                </div>
                 <div class="info-item">
                     <span class="info-label">Restaurant:</span>
-                    <span id="infoRestaurant" class="info-value"></span>
+                    <span class="info-value">${restaurant.name}</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">Ingrédient:</span>
-                    <span id="infoIngredient" class="info-value"></span>
+                    <span class="info-value">
+                        ${ingredient.name} (${ingredient.category})
+                        - <fmt:formatNumber value="${ingredient.currentPrice}" type="currency" currencyCode="EUR"/>
+                    </span>
                 </div>
                 <div class="info-item">
-                    <span class="info-label">Prix unitaire:</span>
-                    <span id="infoPrice" class="info-value"></span>
+                    <span class="info-label">Unité:</span>
+                    <span class="info-value">${ingredient.unit}</span>
                 </div>
             </div>
 
-            <form id="stockForm" method="POST">
-                <input type="hidden" id="stockId">
+            <!-- Editable fields -->
+            <form id="stockForm">
+                <input type="hidden" id="stockId" value="${stock.id}">
 
                 <div style="margin-bottom: 15px;">
                     <label for="quantity" style="display: block; margin-bottom: 5px; font-weight: 500;">
@@ -90,11 +113,14 @@
                     </label>
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <input type="number" id="quantity" name="quantity" class="form-control"
-                               step="0.01" min="0.01" required style="flex: 1;">
-                        <span id="unitDisplay" style="color: #666; min-width: 60px;">-</span>
+                               step="0.01" min="0.01" value="${stock.quantity}" required style="flex: 1;">
+                        <span style="color: #666; min-width: 60px;">${ingredient.unit}</span>
                     </div>
                     <div style="font-size: 12px; color: #666; margin-top: 5px;">
-                        Valeur: <span id="valueEstimate">0.00 €</span>
+                        Valeur actuelle: <span id="valueEstimate">
+                            <fmt:formatNumber value="${stock.quantity * ingredient.currentPrice}"
+                                              type="currency" currencyCode="EUR"/>
+                        </span>
                     </div>
                 </div>
 
@@ -102,7 +128,15 @@
                     <label for="expirationDate" style="display: block; margin-bottom: 5px; font-weight: 500;">
                         Date d'expiration
                     </label>
-                    <input type="date" id="expirationDate" name="expirationDate" class="form-control">
+                    <c:choose>
+                        <c:when test="${not empty expirationDateStr}">
+                            <input type="date" id="expirationDate" name="expirationDate" class="form-control"
+                                   value="${expirationDateStr}">
+                        </c:when>
+                        <c:otherwise>
+                            <input type="date" id="expirationDate" name="expirationDate" class="form-control">
+                        </c:otherwise>
+                    </c:choose>
                     <div style="font-size: 12px; color: #666; margin-top: 5px;">
                         Format: AAAA-MM-JJ
                     </div>
@@ -113,16 +147,20 @@
                         Numéro de lot
                     </label>
                     <input type="text" id="batchNumber" name="batchNumber" class="form-control"
+                           value="${stock.batchNumber != null ? stock.batchNumber : ''}"
                            placeholder="Ex: LOT-2024-001">
                 </div>
 
                 <div style="display: flex; gap: 10px;">
-                    <button type="submit" class="btn btn-success" style="flex: 1;" id="submitBtn">
+                    <button type="button" class="btn btn-success" style="flex: 1;" id="submitBtn" onclick="updateStock()">
                         <i class="fas fa-save"></i> Mettre à jour
                     </button>
                     <a href="stock" class="btn btn-secondary" style="flex: 1;">
                         <i class="fas fa-times"></i> Annuler
                     </a>
+                    <button type="button" class="btn btn-danger" style="flex: 1;" onclick="deleteStock()">
+                        <i class="fas fa-trash"></i> Supprimer
+                    </button>
                 </div>
 
                 <div id="loading" class="loading">
@@ -134,94 +172,31 @@
 </div>
 
 <script>
-    // Get stock ID from URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const stockId = urlParams.get('id');
-
-    document.addEventListener('DOMContentLoaded', function() {
-        if (!stockId) {
-            showError('ID de stock manquant');
-            return;
-        }
-
-        loadStockData(stockId);
+    // Mettre à jour la valeur estimée quand la quantité change
+    document.getElementById('quantity').addEventListener('input', function() {
+        updateValueEstimate();
     });
-
-    async function loadStockData(id) {
-        try {
-            const response = await fetch(`${pageContext.request.contextPath}/api/stock/${id}`);
-
-            if (response.ok) {
-                const stock = await response.json();
-                populateForm(stock);
-            } else {
-                showError('Erreur lors du chargement du stock');
-            }
-        } catch (error) {
-            console.error('Erreur:', error);
-            showError('Erreur de connexion au serveur');
-        }
-    }
-
-    function populateForm(stock) {
-        document.getElementById('stockId').value = stock.id;
-        document.getElementById('quantity').value = stock.quantity;
-        document.getElementById('batchNumber').value = stock.batchNumber || '';
-
-        if (stock.expirationDate) {
-            const date = new Date(stock.expirationDate);
-            document.getElementById('expirationDate').value = date.toISOString().split('T')[0];
-        }
-
-        // Display stock information
-        if (stock.ingredient) {
-            document.getElementById('unitDisplay').textContent = stock.ingredient.unit || '-';
-            document.getElementById('infoIngredient').textContent =
-                `${stock.ingredient.name} (${stock.ingredient.category || 'Non catégorisé'})`;
-            document.getElementById('infoPrice').textContent =
-                `${stock.ingredient.currentPrice.toFixed(2)} €`;
-            updateValueEstimate();
-        }
-
-        if (stock.restaurant) {
-            document.getElementById('infoRestaurant').textContent =
-                `${stock.restaurant.name} - ${stock.restaurant.address || 'Adresse non définie'}`;
-        }
-
-        document.getElementById('stockInfo').style.display = 'block';
-    }
 
     function updateValueEstimate() {
         const quantity = parseFloat(document.getElementById('quantity').value) || 0;
-        const stockInfo = document.getElementById('stockInfo');
-
-        if (stockInfo.style.display !== 'none') {
-            // Extract price from info text
-            const priceText = document.getElementById('infoPrice').textContent;
-            const priceMatch = priceText.match(/(\d+\.?\d*)/);
-            const price = priceMatch ? parseFloat(priceMatch[0]) : 0;
-
-            const value = price * quantity;
-            document.getElementById('valueEstimate').textContent = value.toFixed(2) + ' €';
-        }
+        const price = ${ingredient.currentPrice}; // Prix direct depuis JSP
+        const value = price * quantity;
+        document.getElementById('valueEstimate').textContent = value.toFixed(2) + ' €';
     }
 
-    // Update value estimate when quantity changes
-    document.getElementById('quantity').addEventListener('input', updateValueEstimate);
-
-    // Form submission
-    document.getElementById('stockForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-
+    // Fonction pour mettre à jour le stock
+    async function updateStock() {
         const submitBtn = document.getElementById('submitBtn');
         const loadingDiv = document.getElementById('loading');
         const errorDiv = document.getElementById('errorMessage');
+        const successDiv = document.getElementById('successMessage');
 
+        // Masquer les messages précédents
         errorDiv.style.display = 'none';
-        errorDiv.textContent = '';
+        successDiv.style.display = 'none';
 
+        // Validation
         const quantity = document.getElementById('quantity').value;
-
         if (!quantity || parseFloat(quantity) <= 0) {
             showError('La quantité doit être positive');
             return;
@@ -232,17 +207,21 @@
 
         try {
             const stockData = {
-                id: parseInt(document.getElementById('stockId').value),
-                quantity: parseFloat(quantity),
+                quantity: parseFloat(quantity.replace(',', '.')),
                 batchNumber: document.getElementById('batchNumber').value || null,
                 expirationDate: document.getElementById('expirationDate').value || null
             };
 
+            // Ajouter l'heure pour la date d'expiration
             if (stockData.expirationDate) {
                 stockData.expirationDate += 'T00:00:00';
             }
 
-            const response = await fetch(`${pageContext.request.contextPath}/api/stock/${stockData.id}`, {
+            const stockId = document.getElementById('stockId').value;
+            console.log('Updating stock ID:', stockId);
+            console.log('Data:', stockData);
+
+            const response = await fetch('${pageContext.request.contextPath}/api/stock/' + stockId, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -251,12 +230,20 @@
                 body: JSON.stringify(stockData)
             });
 
+            console.log('Response status:', response.status);
+
             if (response.ok) {
-                alert('Stock mis à jour avec succès !');
-                window.location.href = '${pageContext.request.contextPath}/stock';
+                const result = await response.json();
+                console.log('Update success:', result);
+                showSuccess('Stock mis à jour avec succès !');
+                // Redirection après 2 secondes
+                setTimeout(() => {
+                    window.location.href = '${pageContext.request.contextPath}/stock';
+                }, 2000);
             } else {
                 const errorText = await response.text();
-                let errorMessage = 'Erreur serveur';
+                console.error('Update error:', errorText);
+                let errorMessage = 'Erreur serveur lors de la mise à jour';
                 try {
                     const errorJson = JSON.parse(errorText);
                     errorMessage = errorJson.error || errorJson.message || errorMessage;
@@ -273,7 +260,47 @@
             submitBtn.disabled = false;
             loadingDiv.style.display = 'none';
         }
-    });
+    }
+
+    // Fonction pour supprimer le stock
+    async function deleteStock() {
+        if (confirm('Êtes-vous sûr de vouloir supprimer ce stock ? Cette action est irréversible.')) {
+            try {
+                const stockId = document.getElementById('stockId').value;
+                console.log('Deleting stock ID:', stockId);
+
+                const response = await fetch('${pageContext.request.contextPath}/api/stock/' + stockId, {
+                    method: 'DELETE',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                console.log('Delete response status:', response.status);
+
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('Delete success:', result);
+                    alert('Stock supprimé avec succès');
+                    window.location.href = '${pageContext.request.contextPath}/stock';
+                } else {
+                    const error = await response.text();
+                    console.error('Delete error:', error);
+                    let errorMessage = 'Erreur lors de la suppression';
+                    try {
+                        const errorJson = JSON.parse(error);
+                        errorMessage = errorJson.error || errorJson.message || errorMessage;
+                    } catch (e) {
+                        errorMessage = error;
+                    }
+                    alert(errorMessage);
+                }
+            } catch (error) {
+                console.error('Erreur réseau:', error);
+                alert('Erreur de connexion au serveur: ' + error.message);
+            }
+        }
+    }
 
     function showError(message) {
         const errorDiv = document.getElementById('errorMessage');
@@ -281,6 +308,18 @@
         errorDiv.style.display = 'block';
         errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
+
+    function showSuccess(message) {
+        const successDiv = document.getElementById('successMessage');
+        successDiv.textContent = message;
+        successDiv.style.display = 'block';
+        successDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    // Initialiser la valeur estimée
+    document.addEventListener('DOMContentLoaded', function() {
+        updateValueEstimate();
+    });
 </script>
 </body>
 </html>

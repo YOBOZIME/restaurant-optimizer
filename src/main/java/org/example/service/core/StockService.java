@@ -9,11 +9,6 @@ import org.example.repository.StockRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Root;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.JoinType;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -84,8 +79,21 @@ public class StockService {
         return stockRepository.findNearExpiration();
     }
 
+    public StockRepository getStockRepository() {
+        return stockRepository;
+    }
+
     public RestaurantStock getStockById(Long id) {
-        return stockRepository.findById(id);
+        LOGGER.info("Getting stock with ID: " + id);
+        RestaurantStock stock = stockRepository.findByIdWithRelations(id);
+        if (stock != null) {
+            LOGGER.info("Stock found: " + stock.getId() +
+                    ", Restaurant: " + (stock.getRestaurant() != null ? stock.getRestaurant().getName() : "null") +
+                    ", Ingredient: " + (stock.getIngredient() != null ? stock.getIngredient().getName() : "null"));
+        } else {
+            LOGGER.warning("Stock not found with ID: " + id);
+        }
+        return stock;
     }
 
     @Transactional
@@ -173,193 +181,7 @@ public class StockService {
         return stockRepository.getStockByCategory();
     }
 
-    // Fixed searchStock method using JPQL (Simpler approach)
-    public List<RestaurantStock> searchStock(Long restaurantId, Long ingredientId,
-                                             String expirationFrom, String expirationTo,
-                                             Double minQuantity, Double maxQuantity,
-                                             String category) {
-
-        LOGGER.info("=== StockService.searchStock() ===");
-        LOGGER.info("Params: restaurantId=" + restaurantId +
-                ", ingredientId=" + ingredientId +
-                ", expirationFrom=" + expirationFrom +
-                ", expirationTo=" + expirationTo +
-                ", minQuantity=" + minQuantity +
-                ", maxQuantity=" + maxQuantity +
-                ", category=" + category);
-
-        try {
-            // Build base query with proper JOIN FETCH syntax
-            StringBuilder jpql = new StringBuilder(
-                    "SELECT DISTINCT rs FROM RestaurantStock rs " +
-                            "LEFT JOIN FETCH rs.ingredient i " +
-                            "LEFT JOIN FETCH rs.restaurant r " +
-                            "WHERE 1=1"
-            );
-
-            // Add filters
-            Map<String, Object> parameters = new HashMap<>();
-
-            if (restaurantId != null) {
-                jpql.append(" AND rs.restaurant.id = :restaurantId");
-                parameters.put("restaurantId", restaurantId);
-            }
-
-            if (ingredientId != null) {
-                jpql.append(" AND rs.ingredient.id = :ingredientId");
-                parameters.put("ingredientId", ingredientId);
-            }
-
-            if (minQuantity != null) {
-                jpql.append(" AND rs.quantity >= :minQuantity");
-                parameters.put("minQuantity", minQuantity);
-            }
-
-            if (maxQuantity != null) {
-                jpql.append(" AND rs.quantity <= :maxQuantity");
-                parameters.put("maxQuantity", maxQuantity);
-            }
-
-            if (category != null && !category.isEmpty()) {
-                jpql.append(" AND i.category = :category");
-                parameters.put("category", category);
-            }
-
-            // Handle date filters
-            if (expirationFrom != null && !expirationFrom.isEmpty()) {
-                try {
-                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-                    Date fromDate = sdf.parse(expirationFrom);
-                    jpql.append(" AND rs.expirationDate >= :fromDate");
-                    parameters.put("fromDate", fromDate);
-                } catch (ParseException e) {
-                    LOGGER.warning("Invalid expirationFrom date: " + expirationFrom);
-                }
-            }
-
-            if (expirationTo != null && !expirationTo.isEmpty()) {
-                try {
-                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-                    Date toDate = sdf.parse(expirationTo);
-                    jpql.append(" AND rs.expirationDate <= :toDate");
-                    parameters.put("toDate", toDate);
-                } catch (ParseException e) {
-                    LOGGER.warning("Invalid expirationTo date: " + expirationTo);
-                }
-            }
-
-            // Add ordering
-            jpql.append(" ORDER BY rs.expirationDate ASC NULLS LAST, r.name ASC, i.name ASC");
-
-            LOGGER.info("JPQL query: " + jpql.toString());
-
-            // Create query
-            jakarta.persistence.TypedQuery<RestaurantStock> query =
-                    stockRepository.getEm().createQuery(jpql.toString(), RestaurantStock.class);
-
-            // Set parameters
-            for (Map.Entry<String, Object> entry : parameters.entrySet()) {
-                query.setParameter(entry.getKey(), entry.getValue());
-            }
-
-            List<RestaurantStock> result = query.getResultList();
-            LOGGER.info("Found " + result.size() + " stock items");
-            return result;
-
-        } catch (Exception e) {
-            LOGGER.severe("Error in searchStock: " + e.getMessage());
-            e.printStackTrace();
-            throw e;
-        }
-    }
-
-    // Alternative search method using Criteria API
-    public List<RestaurantStock> searchStockCriteria(Long restaurantId, Long ingredientId,
-                                                     String expirationFrom, String expirationTo,
-                                                     Double minQuantity, Double maxQuantity,
-                                                     String category) {
-
-        LOGGER.info("=== StockService.searchStockCriteria() ===");
-
-        try {
-            CriteriaBuilder cb = stockRepository.getEm().getCriteriaBuilder();
-            CriteriaQuery<RestaurantStock> cq = cb.createQuery(RestaurantStock.class);
-            Root<RestaurantStock> stock = cq.from(RestaurantStock.class);
-
-            // Join with related entities (no alias in fetch)
-            stock.fetch("ingredient", JoinType.LEFT);
-            stock.fetch("restaurant", JoinType.LEFT);
-
-            List<Predicate> predicates = new ArrayList<>();
-
-            if (restaurantId != null) {
-                predicates.add(cb.equal(stock.get("restaurant").get("id"), restaurantId));
-            }
-
-            if (ingredientId != null) {
-                predicates.add(cb.equal(stock.get("ingredient").get("id"), ingredientId));
-            }
-
-            if (minQuantity != null) {
-                predicates.add(cb.ge(stock.get("quantity"), minQuantity));
-            }
-
-            if (maxQuantity != null) {
-                predicates.add(cb.le(stock.get("quantity"), maxQuantity));
-            }
-
-            if (category != null && !category.isEmpty()) {
-                predicates.add(cb.equal(stock.get("ingredient").get("category"), category));
-            }
-
-            // Handle date filters
-            if (expirationFrom != null && !expirationFrom.isEmpty()) {
-                try {
-                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-                    Date fromDate = sdf.parse(expirationFrom);
-                    predicates.add(cb.greaterThanOrEqualTo(stock.get("expirationDate"), fromDate));
-                } catch (ParseException e) {
-                    LOGGER.warning("Invalid expirationFrom date: " + expirationFrom);
-                }
-            }
-
-            if (expirationTo != null && !expirationTo.isEmpty()) {
-                try {
-                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-                    Date toDate = sdf.parse(expirationTo);
-                    predicates.add(cb.lessThanOrEqualTo(stock.get("expirationDate"), toDate));
-                } catch (ParseException e) {
-                    LOGGER.warning("Invalid expirationTo date: " + expirationTo);
-                }
-            }
-
-            if (!predicates.isEmpty()) {
-                cq.where(cb.and(predicates.toArray(new Predicate[0])));
-            }
-
-            // Add ordering with null handling
-            cq.orderBy(
-                    cb.asc(cb.selectCase()
-                            .when(cb.isNull(stock.get("expirationDate")), 1)
-                            .otherwise(0)),
-                    cb.asc(stock.get("expirationDate")),
-                    cb.asc(stock.get("restaurant").get("name")),
-                    cb.asc(stock.get("ingredient").get("name"))
-            );
-
-            List<RestaurantStock> result = stockRepository.getEm().createQuery(cq).getResultList();
-            LOGGER.info("Found " + result.size() + " stock items using Criteria API");
-            return result;
-
-        } catch (Exception e) {
-            LOGGER.severe("Error in searchStockCriteria: " + e.getMessage());
-            e.printStackTrace();
-            // Fall back to JPQL method
-            return searchStock(restaurantId, ingredientId, expirationFrom, expirationTo,
-                    minQuantity, maxQuantity, category);
-        }
-    }
-
+    // Fix the getStockSummary method
     public Map<String, Object> getStockSummary() {
         Map<String, Object> summary = new HashMap<>();
 
@@ -367,16 +189,24 @@ public class StockService {
         Double totalValue = calculateTotalStockValue();
         summary.put("totalValue", totalValue != null ? totalValue : 0.0);
 
-        // Count by restaurant
+        // Count by restaurant with proper value calculation
         try {
+            // FIXED: Use EntityManager directly with proper syntax
             List<Object[]> byRestaurant = stockRepository.getEm().createQuery(
-                    "SELECT r.name, COUNT(rs), SUM(rs.quantity * i.currentPrice) " +
+                    "SELECT r.name, COUNT(rs), COALESCE(SUM(rs.quantity * i.currentPrice), 0) " +
                             "FROM RestaurantStock rs " +
                             "JOIN rs.restaurant r " +
                             "JOIN rs.ingredient i " +
-                            "GROUP BY r.name",
+                            "GROUP BY r.name " +
+                            "ORDER BY COALESCE(SUM(rs.quantity * i.currentPrice), 0) DESC",
                     Object[].class
             ).getResultList();
+
+            LOGGER.info("Restaurant distribution data:");
+            for (Object[] row : byRestaurant) {
+                LOGGER.info("  " + row[0] + ": " + row[2] + " €");
+            }
+
             summary.put("byRestaurant", byRestaurant);
         } catch (Exception e) {
             LOGGER.warning("Error getting byRestaurant summary: " + e.getMessage());
@@ -385,12 +215,14 @@ public class StockService {
 
         // Count by category
         try {
+            // FIXED: Use EntityManager directly with proper syntax
             List<Object[]> byCategory = stockRepository.getEm().createQuery(
-                    "SELECT i.category, COUNT(rs), SUM(rs.quantity), SUM(rs.quantity * i.currentPrice) " +
+                    "SELECT i.category, COUNT(rs), COALESCE(SUM(rs.quantity), 0), COALESCE(SUM(rs.quantity * i.currentPrice), 0) " +
                             "FROM RestaurantStock rs " +
                             "JOIN rs.ingredient i " +
                             "WHERE i.category IS NOT NULL " +
-                            "GROUP BY i.category",
+                            "GROUP BY i.category " +
+                            "ORDER BY COALESCE(SUM(rs.quantity * i.currentPrice), 0) DESC",
                     Object[].class
             ).getResultList();
             summary.put("byCategory", byCategory);
@@ -399,38 +231,12 @@ public class StockService {
             summary.put("byCategory", new ArrayList<>());
         }
 
-        // Expiring soon (within 3 days)
-        try {
-            Date threeDaysLater = new Date(System.currentTimeMillis() + 3 * 24 * 60 * 60 * 1000);
-            Long expiringCount = stockRepository.getEm().createQuery(
-                    "SELECT COUNT(rs) FROM RestaurantStock rs " +
-                            "WHERE rs.expirationDate <= :date AND rs.expirationDate >= CURRENT_DATE",
-                    Long.class
-            ).setParameter("date", threeDaysLater).getSingleResult();
-            summary.put("expiringCount", expiringCount != null ? expiringCount : 0L);
-        } catch (Exception e) {
-            LOGGER.warning("Error getting expiringCount: " + e.getMessage());
-            summary.put("expiringCount", 0L);
-        }
-
-        // Low stock (quantity < 5)
-        try {
-            Long lowStockCount = stockRepository.getEm().createQuery(
-                    "SELECT COUNT(rs) FROM RestaurantStock rs " +
-                            "WHERE rs.quantity < 5",
-                    Long.class
-            ).getSingleResult();
-            summary.put("lowStockCount", lowStockCount != null ? lowStockCount : 0L);
-        } catch (Exception e) {
-            LOGGER.warning("Error getting lowStockCount: " + e.getMessage());
-            summary.put("lowStockCount", 0L);
-        }
-
         return summary;
     }
 
     public List<String> getUniqueCategories() {
         try {
+            // FIXED: Use EntityManager directly with proper syntax
             return stockRepository.getEm().createQuery(
                     "SELECT DISTINCT i.category FROM RestaurantStock rs " +
                             "JOIN rs.ingredient i " +
@@ -457,20 +263,5 @@ public class StockService {
             LOGGER.warning("Invalid quantity format: " + quantityStr);
             return null;
         }
-    }
-
-    // Utility method for searching with String quantity parameters
-    public List<RestaurantStock> searchStockWithStringParams(Long restaurantId, Long ingredientId,
-                                                             String expirationFrom, String expirationTo,
-                                                             String minQuantityStr, String maxQuantityStr,
-                                                             String category) {
-
-        // Parse quantity strings
-        Double minQuantity = parseQuantity(minQuantityStr);
-        Double maxQuantity = parseQuantity(maxQuantityStr);
-
-        // Use either JPQL or Criteria API method
-        return searchStockCriteria(restaurantId, ingredientId, expirationFrom, expirationTo,
-                minQuantity, maxQuantity, category);
     }
 }

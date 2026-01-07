@@ -179,26 +179,42 @@ public class StockResource {
         return Response.ok(stock).build();
     }
 
-
     @PUT
     @Path("/{id}")
-    public Response updateStock(@PathParam("id") Long id, @Valid RestaurantStock updatedStock) {
+    @Transactional
+    public Response updateStock(@PathParam("id") Long id, RestaurantStock stockData) {
         try {
+            LOGGER.info("PUT /stock/" + id + " - Mise à jour du stock");
+            LOGGER.info("Données reçues: " + stockData);
+
             RestaurantStock existing = stockService.getStockById(id);
             if (existing == null) {
-                return Response.status(Response.Status.NOT_FOUND).build();
+                return Response.status(Response.Status.NOT_FOUND)
+                        .entity("{\"error\": \"Stock non trouvé avec l'ID: " + id + "\"}")
+                        .build();
             }
 
-            // Update fields
-            existing.setQuantity(updatedStock.getQuantity());
-            existing.setExpirationDate(updatedStock.getExpirationDate());
-            existing.setBatchNumber(updatedStock.getBatchNumber());
+            // Update only allowed fields
+            if (stockData.getQuantity() != null) {
+                existing.setQuantity(stockData.getQuantity());
+            }
+            if (stockData.getExpirationDate() != null) {
+                existing.setExpirationDate(stockData.getExpirationDate());
+            }
+            if (stockData.getBatchNumber() != null) {
+                existing.setBatchNumber(stockData.getBatchNumber());
+            }
 
             stockService.updateStock(existing);
-            return Response.ok(existing).build();
+
+            return Response.ok()
+                    .entity("{\"success\": true, \"message\": \"Stock mis à jour avec succès\"}")
+                    .build();
+
         } catch (Exception e) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("Error updating stock: " + e.getMessage())
+            LOGGER.severe("Erreur lors de la mise à jour du stock ID " + id + ": " + e.getMessage());
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("{\"error\": \"" + escapeJson(e.getMessage()) + "\"}")
                     .build();
         }
     }
@@ -206,108 +222,16 @@ public class StockResource {
     @DELETE
     @Path("/{id}")
     public Response deleteStock(@PathParam("id") Long id) {
-        stockService.deleteStock(id);
-        return Response.noContent().build();
-    }
-
-    @POST
-    @Path("/adjust/{id}")
-    public Response adjustQuantity(@PathParam("id") Long id,
-                                   @QueryParam("delta") Double delta) {
         try {
-            RestaurantStock stock = stockService.getStockById(id);
-            if (stock == null) {
-                return Response.status(Response.Status.NOT_FOUND).build();
-            }
-
-            Double newQuantity = stock.getQuantity() + delta;
-            if (newQuantity < 0) {
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity("La quantité ne peut pas être négative")
-                        .build();
-            }
-
-            stock.setQuantity(newQuantity);
-            stockService.updateStock(stock);
-
-            return Response.ok(Map.of(
-                    "id", stock.getId(),
-                    "newQuantity", newQuantity,
-                    "message", "Quantité mise à jour"
-            )).build();
-
-        } catch (Exception e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity("Erreur: " + e.getMessage())
-                    .build();
-        }
-    }
-
-    @GET
-    @Path("/restaurants")
-    public Response getAllRestaurantsForStock() {
-        // Vous devrez injecter RestaurantService dans StockResource
-        // List<Restaurant> restaurants = restaurantService.getAllRestaurants();
-        // return Response.ok(restaurants).build();
-
-        // Pour l'instant, retourner une liste vide
-        return Response.ok(List.of()).build();
-    }
-
-    @GET
-    @Path("/restaurants/list")
-    public Response getRestaurantsForStock() {
-        try {
-            List<Restaurant> restaurants = restaurantService.getAllRestaurants();
-            return Response.ok(restaurants).build();
-        } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Error getting restaurants", e);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity("{\"error\": \"Erreur serveur: " + e.getMessage() + "\"}")
-                    .build();
-        }
-    }
-
-    @GET
-    @Path("/ingredients")
-    public Response getAllIngredientsForStock() {
-        // Vous devrez injecter InventoryService dans StockResource
-        // List<Ingredient> ingredients = InventoryService.getAllIngredients();
-        // return Response.ok(ingredients).build();
-
-        // Pour l'instant, retourner une liste vide
-        return Response.ok(List.of()).build();
-    }
-
-    // In StockResource class, add these endpoints:
-    @GET
-    @Path("/restaurants")
-    public Response getAllRestaurants() {
-        try {
-            // You need to inject RestaurantService or use inventoryService
-            // For now, return a simple response
+            LOGGER.info("DELETE /stock/" + id + " - Suppression du stock");
+            stockService.deleteStock(id);
             return Response.ok()
-                    .entity("{\"message\": \"Please implement this endpoint\"}")
+                    .entity("{\"success\": true, \"message\": \"Stock supprimé avec succès\"}")
                     .build();
         } catch (Exception e) {
-            return Response.serverError()
-                    .entity("{\"error\": \"" + e.getMessage() + "\"}")
-                    .build();
-        }
-    }
-
-    // Add these endpoints to StockResource.java
-
-    @GET
-    @Path("/categories")
-    public Response getUniqueCategories() {
-        try {
-            List<String> categories = stockService.getUniqueCategories();
-            return Response.ok(categories).build();
-        } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Error getting categories", e);
+            LOGGER.severe("Erreur lors de la suppression du stock ID " + id + ": " + e.getMessage());
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity("{\"error\": \"Erreur serveur: " + e.getMessage() + "\"}")
+                    .entity("{\"success\": false, \"error\": \"" + escapeJson(e.getMessage()) + "\"}")
                     .build();
         }
     }
@@ -327,52 +251,13 @@ public class StockResource {
     }
 
     @GET
-    @Path("/search")
-    public Response searchStock(
-            @QueryParam("restaurantId") Long restaurantId,
-            @QueryParam("ingredientId") Long ingredientId,
-            @QueryParam("expirationFrom") String expirationFrom,
-            @QueryParam("expirationTo") String expirationTo,
-            @QueryParam("minQuantity") String minQuantityStr,
-            @QueryParam("maxQuantity") String maxQuantityStr,
-            @QueryParam("category") String category) {
-
+    @Path("/categories")
+    public Response getUniqueCategories() {
         try {
-            LOGGER.info("=== StockResource.searchStock() ===");
-            LOGGER.info("Request parameters:");
-            LOGGER.info("  restaurantId: " + restaurantId);
-            LOGGER.info("  ingredientId: " + ingredientId);
-            LOGGER.info("  expirationFrom: " + expirationFrom);
-            LOGGER.info("  expirationTo: " + expirationTo);
-            LOGGER.info("  minQuantity: " + minQuantityStr);
-            LOGGER.info("  maxQuantity: " + maxQuantityStr);
-            LOGGER.info("  category: " + category);
-
-            // Use the method that handles String quantity parameters
-            List<RestaurantStock> filteredStock = stockService.searchStockWithStringParams(
-                    restaurantId, ingredientId, expirationFrom, expirationTo,
-                    minQuantityStr, maxQuantityStr, category);
-
-            LOGGER.info("Found " + filteredStock.size() + " items");
-            return Response.ok(filteredStock).build();
-
+            List<String> categories = stockService.getUniqueCategories();
+            return Response.ok(categories).build();
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Error searching stock", e);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity("{\"error\": \"Erreur lors de la recherche: " +
-                            e.getMessage().replace("\"", "\\\"") + "\"}")
-                    .build();
-        }
-    }
-
-    @GET
-    @Path("/ingredients/list")
-    public Response getIngredientsForStock() {
-        try {
-            List<Ingredient> ingredients = inventoryService.getAllIngredients();
-            return Response.ok(ingredients).build();
-        } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Error getting ingredients", e);
+            LOGGER.log(Level.SEVERE, "Error getting categories", e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity("{\"error\": \"Erreur serveur: " + e.getMessage() + "\"}")
                     .build();
@@ -380,26 +265,8 @@ public class StockResource {
     }
 
     @GET
-    @Path("/ingredients")
-    public Response getAllIngredients() {
-        try {
-            // You need to inject InventoryService or similar
-            // For now, return a simple response
-            return Response.ok()
-                    .entity("{\"message\": \"Please implement this endpoint\"}")
-                    .build();
-        } catch (Exception e) {
-            return Response.serverError()
-                    .entity("{\"error\": \"" + e.getMessage() + "\"}")
-                    .build();
-        }
-    }
-
-
-    @GET
     @Path("/analytics")
     public Response getAnalytics() {
-        // You'll need to add getAnalytics() method to StockService
         Map<String, Object> analytics = stockService.getStockAnalytics();
         return Response.ok(analytics).build();
     }
@@ -410,21 +277,4 @@ public class StockResource {
         Double totalValue = stockService.calculateTotalStockValue();
         return Response.ok().entity(Map.of("totalValue", totalValue)).build();
     }
-
-    // Create a utility class or add this method to StockResource:
-
-    private Double parseQuantity(String quantityStr) {
-        if (quantityStr == null || quantityStr.trim().isEmpty()) {
-            return null;
-        }
-        try {
-            // Handle both comma and dot decimal separators
-            quantityStr = quantityStr.replace(',', '.');
-            return Double.parseDouble(quantityStr);
-        } catch (NumberFormatException e) {
-            LOGGER.warning("Invalid quantity format: " + quantityStr);
-            return null;
-        }
-    }
-
 }

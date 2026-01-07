@@ -8,6 +8,7 @@ import jakarta.transaction.Transactional;
 import java.util.List;
 
 @ApplicationScoped
+@Transactional
 public class RestaurantService {
 
     @Inject
