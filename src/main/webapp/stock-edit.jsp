@@ -8,54 +8,333 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Modifier le Stock | Restaurant Supply Chain Optimizer</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        /* Apply the same base styles as the first page */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header Navigation - Same as first page */
+        .header {
+            background: rgba(15, 15, 15, 0.95);
+            border-radius: 12px;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(220, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header h1 {
+            color: #ff0000;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 600;
+        }
+
+        .header h1 i {
+            color: #ff3333;
+            font-size: 28px;
+        }
+
+        .header nav {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .header nav a {
+            color: #cccccc;
+            text-decoration: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid transparent;
+        }
+
+        .header nav a:hover {
+            color: #ffffff;
+            background: rgba(255, 0, 0, 0.1);
+            border-color: rgba(255, 0, 0, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .header nav a.active {
+            color: #ff0000;
+            background: rgba(255, 0, 0, 0.15);
+            border-color: rgba(255, 0, 0, 0.3);
+            font-weight: 600;
+        }
+
+        /* Card Styling - Same as other pages */
+        .card {
+            background: rgba(20, 20, 20, 0.9);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(220, 0, 0, 0.15);
+        }
+
+        /* Form Styles - Updated for dark theme */
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: rgba(255, 0, 0, 0.3);
+            box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        /* Buttons - Same styles */
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #00c853 0%, #007e33 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: linear-gradient(135deg, #00e676 0%, #008f40 100%);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #666666 0%, #444444 100%);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #888888 0%, #666666 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff5252 0%, #d32f2f 100%);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #ff867f 0%, #ff5252 100%);
+        }
+
+        /* Labels */
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #cccccc;
+        }
+
+        label span {
+            color: #ff5252;
+        }
+
+        /* Loading animation */
         .loading {
             display: none;
             text-align: center;
             padding: 20px;
+            color: #ff9800;
+            font-size: 14px;
         }
+
+        .loading i {
+            margin-right: 8px;
+        }
+
+        /* Message styles - Updated for dark theme */
         .error-message {
-            color: #F44336;
-            background: #ffebee;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 15px;
-            display: none;
-        }
-        .success-message {
-            color: #4CAF50;
-            background: #d4edda;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 15px;
-            display: none;
-        }
-        .stock-info {
-            background: #f5f5f5;
-            padding: 15px;
-            border-radius: 5px;
+            color: #ff5252;
+            background: rgba(255, 82, 82, 0.1);
+            padding: 12px 15px;
+            border-radius: 8px;
             margin-bottom: 20px;
+            display: none;
+            border: 1px solid rgba(255, 82, 82, 0.2);
+            font-size: 14px;
         }
+
+        .success-message {
+            color: #00c853;
+            background: rgba(0, 200, 83, 0.1);
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            border: 1px solid rgba(0, 200, 83, 0.2);
+            font-size: 14px;
+        }
+
+        /* Uneditable info section - Updated for dark theme */
+        .uneditable-info {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border-left: 4px solid rgba(33, 150, 243, 0.5);
+        }
+
+        .uneditable-info > div:first-child {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #2196F3;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
         .info-item {
             display: flex;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
+
+        .info-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
         .info-label {
             font-weight: 500;
             min-width: 120px;
-            color: #666;
+            color: #888888;
         }
+
         .info-value {
             flex: 1;
+            color: #ffffff;
         }
-        .uneditable-info {
-            background: #f9f9f9;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 15px;
-            border-left: 4px solid #2196F3;
+
+        /* Quantity input container */
+        .quantity-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 5px;
+        }
+
+        .quantity-container .form-control {
+            flex: 1;
+        }
+
+        .unit-display {
+            color: #00bcd4;
+            min-width: 60px;
+            font-weight: 500;
+            background: rgba(0, 188, 212, 0.1);
+            padding: 6px 12px;
+            border-radius: 6px;
+            text-align: center;
+            border: 1px solid rgba(0, 188, 212, 0.2);
+        }
+
+        /* Value estimate display */
+        #valueEstimate {
+            color: #00bcd4;
+            font-weight: 600;
+        }
+
+        /* Helper text */
+        .helper-text {
+            font-size: 12px;
+            color: #888888;
+            margin-top: 5px;
+        }
+
+        /* Page title */
+        h2 {
+            color: #ffffff;
+            font-size: 24px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        h2 i {
+            color: #ff3333;
+        }
+
+        /* Form group spacing */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        /* Animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card {
+            animation: fadeIn 0.5s ease-out;
         }
     </style>
 </head>
@@ -67,14 +346,14 @@
             <a href="dashboard"><i class="fas fa-home"></i> Dashboard</a>
             <a href="ingredients"><i class="fas fa-carrot"></i> Ingrédients</a>
             <a href="restaurants"><i class="fas fa-store"></i> Restaurants</a>
-            <a href="stock"><i class="fas fa-boxes"></i> Stocks</a>
+            <a href="stock" class="active"><i class="fas fa-boxes"></i> Stocks</a>
             <a href="waste"><i class="fas fa-trash"></i> Pertes</a>
         </nav>
     </header>
 
     <div style="max-width: 600px; margin: 30px auto;">
         <div class="card">
-            <h2 style="margin-bottom: 20px;">
+            <h2>
                 <i class="fas fa-edit"></i> Modifier le Stock #${stock.id}
             </h2>
 
@@ -83,7 +362,7 @@
 
             <!-- Stock information (uneditable) -->
             <div class="uneditable-info">
-                <div style="font-weight: 500; margin-bottom: 10px; color: #2196F3;">
+                <div>
                     <i class="fas fa-info-circle"></i> Informations (non modifiables)
                 </div>
                 <div class="info-item">
@@ -107,16 +386,16 @@
             <form id="stockForm">
                 <input type="hidden" id="stockId" value="${stock.id}">
 
-                <div style="margin-bottom: 15px;">
-                    <label for="quantity" style="display: block; margin-bottom: 5px; font-weight: 500;">
-                        Quantité <span style="color: #F44336;">*</span>
+                <div class="form-group">
+                    <label for="quantity">
+                        Quantité <span>*</span>
                     </label>
-                    <div style="display: flex; align-items: center; gap: 10px;">
+                    <div class="quantity-container">
                         <input type="number" id="quantity" name="quantity" class="form-control"
-                               step="0.01" min="0.01" value="${stock.quantity}" required style="flex: 1;">
-                        <span style="color: #666; min-width: 60px;">${ingredient.unit}</span>
+                               step="0.01" min="0.01" value="${stock.quantity}" required>
+                        <span class="unit-display">${ingredient.unit}</span>
                     </div>
-                    <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                    <div class="helper-text">
                         Valeur actuelle: <span id="valueEstimate">
                             <fmt:formatNumber value="${stock.quantity * ingredient.currentPrice}"
                                               type="currency" currencyCode="EUR"/>
@@ -124,8 +403,8 @@
                     </div>
                 </div>
 
-                <div style="margin-bottom: 15px;">
-                    <label for="expirationDate" style="display: block; margin-bottom: 5px; font-weight: 500;">
+                <div class="form-group">
+                    <label for="expirationDate">
                         Date d'expiration
                     </label>
                     <c:choose>
@@ -137,13 +416,13 @@
                             <input type="date" id="expirationDate" name="expirationDate" class="form-control">
                         </c:otherwise>
                     </c:choose>
-                    <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                    <div class="helper-text">
                         Format: AAAA-MM-JJ
                     </div>
                 </div>
 
-                <div style="margin-bottom: 20px;">
-                    <label for="batchNumber" style="display: block; margin-bottom: 5px; font-weight: 500;">
+                <div class="form-group">
+                    <label for="batchNumber">
                         Numéro de lot
                     </label>
                     <input type="text" id="batchNumber" name="batchNumber" class="form-control"
@@ -151,7 +430,7 @@
                            placeholder="Ex: LOT-2024-001">
                 </div>
 
-                <div style="display: flex; gap: 10px;">
+                <div style="display: flex; gap: 10px; margin-top: 30px;">
                     <button type="button" class="btn btn-success" style="flex: 1;" id="submitBtn" onclick="updateStock()">
                         <i class="fas fa-save"></i> Mettre à jour
                     </button>
@@ -173,7 +452,12 @@
 
 <script>
     // Mettre à jour la valeur estimée quand la quantité change
-    document.getElementById('quantity').addEventListener('input', function() {
+    document.getElementById('quantity').addEventListener('input', function(e) {
+        let value = e.target.value;
+        // Replace comma with dot as user types
+        if (value.includes(',')) {
+            e.target.value = value.replace(',', '.');
+        }
         updateValueEstimate();
     });
 

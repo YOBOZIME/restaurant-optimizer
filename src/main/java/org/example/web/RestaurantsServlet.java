@@ -63,8 +63,10 @@ public class RestaurantsServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
+
         req.setCharacterEncoding("UTF-8");
         resp.setCharacterEncoding("UTF-8");
+        resp.setContentType("text/html; charset=UTF-8");
 
         try {
             String idParam = req.getParameter("id");
@@ -128,8 +130,8 @@ public class RestaurantsServlet extends HttpServlet {
             } else {
                 // AJOUT
                 restaurantService.addRestaurant(restaurant);
-                System.out.println("Restaurant ajouté avec succès, ID: " + restaurant.getId());
-                resp.sendRedirect("restaurants?success=Restaurant ajouté avec succès");
+                System.out.println("Restaurant ajoute avec succes, ID: " + restaurant.getId());
+                resp.sendRedirect("restaurants?success=Restaurant ajoute avec succes");
             }
 
         } catch (Exception e) {

@@ -42,199 +42,597 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestion des Restaurants | Restaurant Supply Chain Optimizer</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        /* Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header Navigation */
+        .header {
+            background: rgba(15, 15, 15, 0.95);
+            border-radius: 12px;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(220, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header h1 {
+            color: #ff0000;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 600;
+        }
+
+        .header h1 i {
+            color: #ff3333;
+            font-size: 28px;
+        }
+
+        .header nav {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .header nav a {
+            color: #cccccc;
+            text-decoration: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid transparent;
+        }
+
+        .header nav a:hover {
+            color: #ffffff;
+            background: rgba(255, 0, 0, 0.1);
+            border-color: rgba(255, 0, 0, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .header nav a.active {
+            color: #ff0000;
+            background: rgba(255, 0, 0, 0.15);
+            border-color: rgba(255, 0, 0, 0.3);
+            font-weight: 600;
+        }
+
+        /* Page Header */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid rgba(255, 0, 0, 0.3);
+        }
+
+        .page-header h2 {
+            color: #ffffff;
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .page-header h2 i {
+            color: #ff3333;
+        }
+
+        .page-header p {
+            color: #aaaaaa;
+            margin-top: 8px;
+            font-size: 15px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #00c853 0%, #007e33 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: linear-gradient(135deg, #00e676 0%, #008f40 100%);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #ff3333 0%, #e60000 100%);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #00bcd4 0%, #00838f 100%);
+            color: white;
+        }
+
+        .btn-info:hover {
+            background: linear-gradient(135deg, #26c6da 0%, #0097a7 100%);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: linear-gradient(135deg, #ffb74d 0%, #ff9800 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff5252 0%, #d32f2f 100%);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #ff867f 0%, #ff5252 100%);
+        }
+
+        /* Card Styling */
+        .card {
+            background: rgba(20, 20, 20, 0.9);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(220, 0, 0, 0.15);
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 1px solid;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-success {
+            background: rgba(0, 200, 83, 0.15);
+            color: #00c853;
+            border-color: rgba(0, 200, 83, 0.3);
+        }
+
+        .alert-danger {
+            background: rgba(255, 82, 82, 0.15);
+            color: #ff5252;
+            border-color: rgba(255, 82, 82, 0.3);
+        }
+
+        /* Quick Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+            padding: 25px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            background: rgba(255, 0, 0, 0.05);
+            border-color: rgba(255, 0, 0, 0.2);
+            transform: translateY(-3px);
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: 700;
+            margin: 15px 0;
+            background: linear-gradient(135deg, #ff0000 0%, #ff6666 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            color: #aaaaaa;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* City Filter */
+        .city-filter {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .city-badge {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            color: #cccccc;
+            border: 1px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .city-badge:hover {
+            background: rgba(255, 0, 0, 0.15);
+            color: #ffffff;
+            border-color: rgba(255, 0, 0, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .city-badge.active {
+            background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+            color: white;
+            border-color: #ff0000;
+            box-shadow: 0 4px 15px rgba(255, 0, 0, 0.2);
+        }
+
+        /* Restaurant Grid */
         .restaurant-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
             margin: 20px 0;
         }
 
+        @media (max-width: 768px) {
+            .restaurant-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Restaurant Card */
         .restaurant-card {
-            background: white;
+            background: rgba(20, 20, 20, 0.9);
             border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            transition: all 0.3s;
-            border: 1px solid #eee;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
             position: relative;
+            overflow: hidden;
         }
 
         .restaurant-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-        }
-
-        /* Ajoute ces styles à la section <style> existante */
-        .btn-info {
-            background: #17a2b8;
-            color: white;
-            border: none;
-        }
-
-        .btn-info:hover {
-            background: #138496;
-        }
-
-        .restaurant-card .map-preview:hover {
-            background: #f0f0f0;
-            transition: background 0.3s;
+            box-shadow: 0 8px 25px rgba(220, 0, 0, 0.15);
+            border-color: rgba(255, 0, 0, 0.2);
         }
 
         .restaurant-header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
-
-
-        .btn-warning {
-            background: #ffc107;
-            color: #212529;
-            border: none;
-        }
-
-        .btn-warning:hover {
-            background: #e0a800;
-        }
-
-        /* Pour les petits boutons */
-        .btn-sm {
-            padding: 5px 10px;
-            font-size: 12px;
-            border-radius: 4px;
-        }
-
 
         .restaurant-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 10px;
-            background: linear-gradient(135deg, #2196F3 0%, #21CBF3 100%);
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 20px;
+            font-size: 24px;
         }
 
         .restaurant-status {
-            padding: 4px 12px;
+            padding: 6px 15px;
             border-radius: 20px;
             font-size: 12px;
-            font-weight: 500;
-        }
-
-        .status-open { background: #d4edda; color: #155724; }
-        .status-closed { background: #f8d7da; color: #721c24; }
-        .status-busy { background: #fff3cd; color: #856404; }
-
-        .restaurant-stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin: 15px 0;
-        }
-
-        .stat-item {
-            text-align: center;
-            padding: 10px;
-            background: #f8f9fa;
-            border-radius: 8px;
-        }
-
-        .stat-value {
-            font-size: 20px;
-            font-weight: bold;
-            color: #2196F3;
-        }
-
-        .stat-label {
-            font-size: 11px;
-            color: #666;
-            margin-top: 5px;
-        }
-
-        .restaurant-actions {
-            display: flex;
-            gap: 8px;
-            margin-top: 15px;
-            justify-content: flex-end;
-        }
-
-        .city-filter {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-
-        .city-badge {
-            padding: 8px 15px;
-            background: #f0f0f0;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 14px;
-        }
-
-        .city-badge:hover, .city-badge.active {
-            background: #2196F3;
-            color: white;
-        }
-
-        .map-preview {
-            width: 100%;
-            height: 150px;
-            background: #f0f0f0;
-            border-radius: 8px;
-            margin-top: 15px;
+            font-weight: 600;
             display: flex;
             align-items: center;
-            justify-content: center;
-            color: #666;
+            gap: 6px;
+        }
+
+        .status-open {
+            background: rgba(0, 200, 83, 0.15);
+            color: #00c853;
+        }
+
+        .status-closed {
+            background: rgba(255, 82, 82, 0.15);
+            color: #ff5252;
+        }
+
+        .status-busy {
+            background: rgba(255, 152, 0, 0.15);
+            color: #ff9800;
         }
 
         .restaurant-id {
             position: absolute;
-            top: 10px;
-            right: 10px;
-            background: #f0f0f0;
-            color: #666;
-            padding: 2px 8px;
-            border-radius: 12px;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #888888;
+            padding: 4px 12px;
+            border-radius: 20px;
             font-size: 11px;
+            font-weight: 500;
         }
 
-        .opening-hours {
-            font-size: 12px;
-            color: #666;
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid #eee;
+        .restaurant-id .inactive-badge {
+            background: rgba(255, 82, 82, 0.2);
+            color: #ff5252;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 9px;
+            margin-left: 5px;
         }
 
-        .page-header {
+        .restaurant-card h3 {
+            color: #ffffff;
+            font-size: 20px;
+            margin: 10px 0;
+            font-weight: 600;
+        }
+
+        .restaurant-location {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
+            gap: 10px;
+            margin-bottom: 15px;
+            color: #888888;
+            font-size: 14px;
         }
 
+        .restaurant-location i {
+            color: #ff3333;
+        }
+
+        /* Contact Info */
+        .contact-info {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            color: #aaaaaa;
+            font-size: 14px;
+        }
+
+        .contact-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .contact-item i {
+            color: #ff3333;
+            font-size: 14px;
+            width: 16px;
+        }
+
+        /* Restaurant Stats */
+        .restaurant-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .restaurant-stat-item {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .restaurant-stat-value {
+            font-size: 22px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 5px;
+        }
+
+        .restaurant-stat-label {
+            font-size: 12px;
+            color: #888888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Map Preview */
+        .map-preview {
+            width: 100%;
+            height: 150px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 10px;
+            margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #666666;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .map-preview:hover {
+            background: rgba(255, 0, 0, 0.05);
+            border-color: rgba(255, 0, 0, 0.2);
+        }
+
+        .map-preview i {
+            font-size: 40px;
+            color: #ff3333;
+            margin-bottom: 10px;
+        }
+
+        /* Opening Hours */
+        .opening-hours {
+            font-size: 13px;
+            color: #888888;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .opening-hours i {
+            color: #ff3333;
+        }
+
+        /* Restaurant Actions */
+        .restaurant-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: flex-end;
+        }
+
+        /* Empty State */
         .no-restaurants {
             text-align: center;
-            padding: 40px;
-            color: #666;
+            padding: 60px 20px;
+            color: #666666;
         }
 
         .no-restaurants i {
-            font-size: 48px;
+            font-size: 64px;
             margin-bottom: 20px;
-            color: #ddd;
+            color: #333333;
+        }
+
+        .no-restaurants h3 {
+            color: #ffffff;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+
+        .no-restaurants p {
+            color: #888888;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+
+        /* Mobile Add Button */
+        #mobileAddBtn {
+            display: none;
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        @media (max-width: 768px) {
+            #mobileAddBtn {
+                display: block;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .restaurant-card, .card, .stat-card {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* Section Headers */
+        h3 {
+            color: #ffffff;
+            font-size: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        h3 i {
+            color: #ff3333;
         }
     </style>
 </head>
@@ -256,54 +654,47 @@
     <div class="page-header">
         <div>
             <h2><i class="fas fa-store"></i> Gestion des Restaurants</h2>
-            <p style="color: #666; margin-top: 5px;">Gérez vos restaurants et leurs caractéristiques</p>
+            <p>Gérez vos restaurants et leurs caractéristiques</p>
         </div>
         <a href="restaurants?action=add" class="btn btn-success">
             <i class="fas fa-plus-circle"></i> Nouveau Restaurant
         </a>
     </div>
+
     <!-- Messages d'erreur/succès -->
     <c:if test="${not empty success}">
-        <div class="alert alert-success" style="background-color: #d4edda; color: #155724;
-            padding: 15px; border-radius: 8px; margin: 20px 0; border: 1px solid #c3e6cb;">
+        <div class="alert alert-success">
             <i class="fas fa-check-circle"></i> ${success}
         </div>
     </c:if>
     <c:if test="${not empty error}">
-        <div class="alert alert-danger" style="background-color: #f8d7da; color: #721c24;
-            padding: 15px; border-radius: 8px; margin: 20px 0; border: 1px solid #f5c6cb;">
+        <div class="alert alert-danger">
             <i class="fas fa-exclamation-circle"></i> ${error}
         </div>
     </c:if>
 
     <!-- Quick Stats -->
     <div class="card">
-        <h3 style="margin-bottom: 15px;"><i class="fas fa-chart-bar"></i> Vue d'ensemble</h3>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
-            <div style="text-align: center;">
-                <div style="font-size: 32px; font-weight: bold; color: #2196F3;">
-                    ${restaurants.size()}
-                </div>
-                <div style="color: #666;">Restaurants gérés</div>
+        <h3><i class="fas fa-chart-bar"></i> Vue d'ensemble</h3>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">${restaurants.size()}</div>
+                <div class="stat-label">Restaurants gérés</div>
             </div>
-            <div style="text-align: center;">
-                <div style="font-size: 32px; font-weight: bold; color: #4CAF50;">
-                    ${uniqueCitiesCount}
-                </div>
-                <div style="color: #666;">Villes desservies</div>
+            <div class="stat-card">
+                <div class="stat-value">${uniqueCitiesCount}</div>
+                <div class="stat-label">Villes desservies</div>
             </div>
-            <div style="text-align: center;">
-                <div style="font-size: 32px; font-weight: bold; color: #FF9800;">
-                    ${alertsCount}
-                </div>
-                <div style="color: #666;">Alertes actives</div>
+            <div class="stat-card">
+                <div class="stat-value">${alertsCount}</div>
+                <div class="stat-label">Alertes actives</div>
             </div>
         </div>
     </div>
 
     <!-- City Filter -->
     <div class="card">
-        <h3 style="margin-bottom: 15px;"><i class="fas fa-filter"></i> Filtrer par ville</h3>
+        <h3><i class="fas fa-filter"></i> Filtrer par ville</h3>
         <div class="city-filter">
             <span class="city-badge active" onclick="filterByCity('all')">Toutes les villes</span>
             <c:forEach var="city" items="${uniqueCities}">
@@ -320,70 +711,68 @@
             <div class="restaurant-grid">
                 <c:forEach var="restaurant" items="${restaurants}">
                     <div class="restaurant-card" data-city="${restaurant.city}">
-                        <!-- En-tête avec ID et statut -->
+                        <!-- ID et badge -->
+                        <div class="restaurant-id">
+                            #${restaurant.id}
+                            <c:if test="${not restaurant.isActive}">
+                                <span class="inactive-badge">Inactif</span>
+                            </c:if>
+                        </div>
+
+                        <!-- En-tête avec icône et statut -->
                         <div class="restaurant-header">
                             <div class="restaurant-icon">
                                 <i class="fas fa-utensils"></i>
                             </div>
                             <div>
-                <span class="restaurant-status ${restaurant.isActive ? 'status-open' : 'status-closed'}">
-                    <i class="fas fa-circle" style="font-size: 8px;"></i>
-                    ${restaurant.isActive ? 'Ouvert' : 'Fermé'}
-                </span>
+                                <span class="restaurant-status ${restaurant.isActive ? 'status-open' : 'status-closed'}">
+                                    <i class="fas fa-circle" style="font-size: 8px;"></i>
+                                    ${restaurant.isActive ? 'Ouvert' : 'Fermé'}
+                                </span>
                             </div>
                         </div>
 
-                        <!-- ID et badge -->
-                        <div class="restaurant-id">
-                            #${restaurant.id}
-                            <c:if test="${not restaurant.isActive}">
-                <span style="background: #dc3545; color: white; padding: 1px 6px; border-radius: 10px; font-size: 10px; margin-left: 5px;">
-                    Inactif
-                </span>
-                            </c:if>
-                        </div>
-
                         <!-- Nom et ville -->
-                        <h3 style="margin: 10px 0;">${restaurant.name}</h3>
-                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
-                            <i class="fas fa-map-marker-alt" style="color: #F44336;"></i>
-                            <span style="color: #666;">${restaurant.city}</span>
+                        <h3>${restaurant.name}</h3>
+                        <div class="restaurant-location">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>${restaurant.city}</span>
                             <c:if test="${not empty restaurant.address}">
-                                <span style="color: #999; font-size: 12px;">• ${restaurant.address}</span>
+                                <span style="color: #666666;">• ${restaurant.address}</span>
                             </c:if>
                         </div>
 
-                        <!-- Informations de contact (si disponibles) -->
+                        <!-- Informations de contact -->
                         <c:if test="${not empty restaurant.phone or not empty restaurant.email}">
-                            <div style="background: #f8f9fa; padding: 10px; border-radius: 8px; margin-bottom: 15px;">
+                            <div class="contact-info">
                                 <c:if test="${not empty restaurant.phone}">
-                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 5px; font-size: 13px;">
-                                        <i class="fas fa-phone" style="color: #2196F3; font-size: 12px;"></i>
-                                        <span style="color: #666;">${restaurant.phone}</span>
+                                    <div class="contact-item">
+                                        <i class="fas fa-phone"></i>
+                                        <span>${restaurant.phone}</span>
                                     </div>
                                 </c:if>
                                 <c:if test="${not empty restaurant.email}">
-                                    <div style="display: flex; align-items: center; gap: 8px; font-size: 13px;">
-                                        <i class="fas fa-envelope" style="color: #2196F3; font-size: 12px;"></i>
-                                        <span style="color: #666;">${restaurant.email}</span>
+                                    <div class="contact-item">
+                                        <i class="fas fa-envelope"></i>
+                                        <span>${restaurant.email}</span>
                                     </div>
                                 </c:if>
                             </div>
                         </c:if>
 
-                        <!-- Statistiques RÉELLES -->
+                        <!-- Statistiques -->
                         <div class="restaurant-stats">
                             <!-- Capacité -->
-                            <div class="stat-item">
-                                <div class="stat-value">
+                            <div class="restaurant-stat-item">
+                                <div class="restaurant-stat-value">
                                         ${restaurant.capacity != null ? restaurant.capacity : '50'}
                                 </div>
-                                <div class="stat-label">Places</div>
+                                <div class="restaurant-stat-label">Places</div>
                             </div>
 
                             <!-- Horaires -->
-                            <div class="stat-item">
-                                <div class="stat-value">
+                            <div class="restaurant-stat-item">
+                                <div class="restaurant-stat-value">
                                     <c:choose>
                                         <c:when test="${restaurant.openingTime != null && restaurant.closingTime != null}">
                                             ${restaurant.openingTime}<br>${restaurant.closingTime}
@@ -393,23 +782,22 @@
                                         </c:otherwise>
                                     </c:choose>
                                 </div>
-                                <div class="stat-label">Horaires</div>
+                                <div class="restaurant-stat-label">Horaires</div>
                             </div>
 
-                            <!-- Informations supplémentaires (à compléter plus tard) -->
-                            <div class="stat-item">
-                                <div class="stat-value">
-                                    <!-- À remplacer par vraie donnée -->
+                            <!-- Stock -->
+                            <div class="restaurant-stat-item">
+                                <div class="restaurant-stat-value">
                                         ${restaurant.id != null ? restaurant.id % 50 + 20 : '0'}
                                 </div>
-                                <div class="stat-label">Stock</div>
+                                <div class="restaurant-stat-label">Stock</div>
                             </div>
                         </div>
 
-                        <!-- Aperçu du stock (placeholder pour l'instant) -->
-                        <div class="map-preview" style="cursor: pointer;" onclick="viewRestaurant(${restaurant.id})">
-                            <i class="fas fa-chart-pie" style="font-size: 40px; color: #2196F3;"></i>
-                            <div style="margin-top: 10px; font-size: 14px;">Voir le stock</div>
+                        <!-- Aperçu du stock -->
+                        <div class="map-preview" onclick="viewRestaurant(${restaurant.id})">
+                            <i class="fas fa-chart-pie"></i>
+                            <div style="margin-top: 10px; font-size: 14px; color: #aaaaaa;">Voir le stock</div>
                         </div>
 
                         <!-- Horaires d'ouverture -->
@@ -446,7 +834,7 @@
             <div class="card no-restaurants">
                 <i class="fas fa-store-slash"></i>
                 <h3>Aucun restaurant trouvé</h3>
-                <p style="color: #666; margin-top: 10px;">
+                <p>
                     Commencez par ajouter votre premier restaurant.
                 </p>
                 <a href="restaurants?action=add" class="btn btn-success" style="margin-top: 20px;">
@@ -457,7 +845,7 @@
     </c:choose>
 
     <!-- Add Restaurant Button (Mobile) -->
-    <div style="text-align: center; margin-top: 30px; display: none;" id="mobileAddBtn">
+    <div id="mobileAddBtn">
         <a href="restaurants?action=add" class="btn btn-success" style="padding: 15px 30px; font-size: 16px;">
             <i class="fas fa-plus-circle"></i> Ajouter un Restaurant
         </a>
@@ -484,7 +872,6 @@
     }
 
     // Action functions
-    // Modifier la fonction viewRestaurant
     function viewRestaurant(id) {
         window.location.href = "view-restaurant?id=" + id;
     }
@@ -520,6 +907,12 @@
         } else {
             console.log(`${restaurantCount} restaurants à afficher`);
         }
+
+        // Add animation delays to restaurant cards
+        const cards = document.querySelectorAll('.restaurant-card');
+        cards.forEach((card, index) => {
+            card.style.animationDelay = `${index * 0.05}s`;
+        });
     });
 </script>
 </body>

@@ -8,65 +8,310 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestion des Stocks | Restaurant Supply Chain Optimizer</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        /* Apply the same base styles as the first page */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header Navigation - Same as first page */
+        .header {
+            background: rgba(15, 15, 15, 0.95);
+            border-radius: 12px;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(220, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header h1 {
+            color: #ff0000;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 600;
+        }
+
+        .header h1 i {
+            color: #ff3333;
+            font-size: 28px;
+        }
+
+        .header nav {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .header nav a {
+            color: #cccccc;
+            text-decoration: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid transparent;
+        }
+
+        .header nav a:hover {
+            color: #ffffff;
+            background: rgba(255, 0, 0, 0.1);
+            border-color: rgba(255, 0, 0, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .header nav a.active {
+            color: #ff0000;
+            background: rgba(255, 0, 0, 0.15);
+            border-color: rgba(255, 0, 0, 0.3);
+            font-weight: 600;
+        }
+
+        /* Page Header - Same style */
         .stock-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 30px;
             padding-bottom: 20px;
-            border-bottom: 2px solid #f0f0f0;
+            border-bottom: 2px solid rgba(255, 0, 0, 0.3);
         }
 
+        .stock-header h2 {
+            color: #ffffff;
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .stock-header h2 i {
+            color: #ff3333;
+        }
+
+        .stock-header p {
+            color: #aaaaaa;
+            margin-top: 8px;
+            font-size: 15px;
+        }
+
+        /* Buttons - Same styles */
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #00c853 0%, #007e33 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: linear-gradient(135deg, #00e676 0%, #008f40 100%);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #ff3333 0%, #e60000 100%);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #00bcd4 0%, #00838f 100%);
+            color: white;
+        }
+
+        .btn-info:hover {
+            background: linear-gradient(135deg, #26c6da 0%, #0097a7 100%);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: linear-gradient(135deg, #ffb74d 0%, #ff9800 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff5252 0%, #d32f2f 100%);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #ff867f 0%, #ff5252 100%);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #666666 0%, #444444 100%);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #888888 0%, #666666 100%);
+        }
+
+        /* Card Styling - Same as first page */
+        .card {
+            background: rgba(20, 20, 20, 0.9);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(220, 0, 0, 0.15);
+        }
+
+        /* Updated Stats Grid - Dark theme */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
+            gap: 20px;
             margin-bottom: 30px;
         }
 
         .stat-card {
-            background: white;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+            padding: 25px;
             text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            background: rgba(255, 0, 0, 0.05);
+            border-color: rgba(255, 0, 0, 0.2);
+            transform: translateY(-3px);
         }
 
         .stat-value {
-            font-size: 32px;
-            font-weight: bold;
-            margin: 10px 0;
+            font-size: 36px;
+            font-weight: 700;
+            margin: 15px 0;
+            background: linear-gradient(135deg, #ff0000 0%, #ff6666 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .stat-label {
-            color: #666;
+            color: #aaaaaa;
             font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
-        .stat-critical { color: #F44336; }
-        .stat-warning { color: #FF9800; }
-        .stat-info { color: #2196F3; }
-        .stat-success { color: #4CAF50; }
+        .stat-critical {
+            background: linear-gradient(135deg, #ff5252 0%, #d32f2f 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .stat-warning {
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .stat-info {
+            background: linear-gradient(135deg, #00bcd4 0%, #00838f 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .stat-success {
+            background: linear-gradient(135deg, #00c853 0%, #007e33 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
 
+        /* Updated Stock Level Badges */
         .stock-level {
             display: inline-flex;
             align-items: center;
             gap: 5px;
-            padding: 4px 12px;
+            padding: 6px 12px;
             border-radius: 12px;
             font-size: 12px;
             font-weight: 500;
         }
 
-        .level-critical { background: #f8d7da; color: #721c24; }
-        .level-low { background: #fff3cd; color: #856404; }
-        .level-ok { background: #d4edda; color: #155724; }
-        .level-high { background: #cce5ff; color: #004085; }
+        .level-critical {
+            background: rgba(255, 82, 82, 0.15);
+            color: #ff5252;
+            border: 1px solid rgba(255, 82, 82, 0.3);
+        }
+        .level-low {
+            background: rgba(255, 152, 0, 0.15);
+            color: #ff9800;
+            border: 1px solid rgba(255, 152, 0, 0.3);
+        }
+        .level-ok {
+            background: rgba(0, 200, 83, 0.15);
+            color: #00c853;
+            border: 1px solid rgba(0, 200, 83, 0.3);
+        }
+        .level-high {
+            background: rgba(33, 150, 243, 0.15);
+            color: #2196F3;
+            border: 1px solid rgba(33, 150, 243, 0.3);
+        }
 
+        /* Updated Expiration Indicators */
         .expiration-indicator {
             display: inline-flex;
             align-items: center;
@@ -74,26 +319,47 @@
             font-size: 12px;
         }
 
-        .expiration-soon { color: #F44336; }
-        .expiration-warning { color: #FF9800; }
-        .expiration-good { color: #4CAF50; }
+        .expiration-soon { color: #ff5252; }
+        .expiration-warning { color: #ff9800; }
+        .expiration-good { color: #00c853; }
 
+        /* Updated Quantity Editor */
         .quantity-editor {
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
+        .quantity-input {
+            width: 80px;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            color: white;
+            font-size: 14px;
+        }
+
+        .quantity-input:focus {
+            outline: none;
+            border-color: rgba(255, 0, 0, 0.3);
+            box-shadow: 0 0 0 2px rgba(255, 0, 0, 0.1);
+        }
+
+        /* Updated Batch Badge */
         .batch-badge {
             display: inline-block;
-            padding: 2px 8px;
-            background: #e9ecef;
-            border-radius: 4px;
+            padding: 4px 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
             font-size: 11px;
             font-family: monospace;
             letter-spacing: 1px;
+            color: #cccccc;
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
+        /* Updated Stock Actions */
         .stock-actions {
             display: flex;
             gap: 8px;
@@ -102,15 +368,23 @@
 
         .stock-value {
             font-weight: bold;
-            color: #2196F3;
+            color: #00bcd4;
         }
 
+        /* Updated Report Section */
         .report-section {
-            background: white;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            background: rgba(20, 20, 20, 0.9);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .report-section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(220, 0, 0, 0.15);
         }
 
         .chart-container {
@@ -122,7 +396,20 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .report-header h3 {
+            color: #ffffff;
+            font-size: 20px;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .report-header h3 i {
+            color: #ff3333;
         }
 
         .report-actions {
@@ -130,6 +417,7 @@
             gap: 10px;
         }
 
+        /* Updated Alert Table */
         .alert-table {
             width: 100%;
             border-collapse: collapse;
@@ -137,34 +425,36 @@
         }
 
         .alert-table th, .alert-table td {
-            padding: 10px;
+            padding: 12px;
             text-align: left;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .alert-table th {
-            background: #f5f5f5;
-            font-weight: 500;
+            background: rgba(255, 255, 255, 0.03);
+            font-weight: 600;
+            color: #cccccc;
         }
 
         .alert-row:hover {
-            background: #f9f9f9;
+            background: rgba(255, 255, 255, 0.02);
         }
 
         .no-data {
             text-align: center;
             padding: 30px;
-            color: #999;
+            color: #666666;
             font-style: italic;
         }
 
-        /* Filter styles */
+        /* Updated Filter Section */
         .filter-section {
-            background: white;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            background: rgba(20, 20, 20, 0.9);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .filter-row {
@@ -178,31 +468,74 @@
             font-weight: 500;
             margin-bottom: 5px;
             display: block;
-            color: #333;
+            color: #cccccc;
+        }
+
+        .form-control {
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            color: white;
+            font-size: 14px;
+            width: 250px;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: rgba(255, 0, 0, 0.3);
+            box-shadow: 0 0 0 2px rgba(255, 0, 0, 0.1);
         }
 
         .btn-outline-primary {
-            background: white;
-            border: 1px solid #2196F3;
-            color: #2196F3;
+            background: transparent;
+            border: 1px solid rgba(255, 0, 0, 0.3);
+            color: #ff6666;
             padding: 6px 12px;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
             text-decoration: none;
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
             font-size: 14px;
+            transition: all 0.3s ease;
         }
 
         .btn-outline-primary:hover {
-            background: #2196F3;
-            color: white;
+            background: rgba(255, 0, 0, 0.1);
+            color: #ffffff;
+            border-color: rgba(255, 0, 0, 0.5);
         }
 
         .btn-outline-primary.active {
-            background: #2196F3;
-            color: white;
+            background: rgba(255, 0, 0, 0.15);
+            color: #ff0000;
+            border-color: rgba(255, 0, 0, 0.3);
         }
 
+        .btn-outline-danger {
+            background: transparent;
+            border: 1px solid rgba(255, 82, 82, 0.3);
+            color: #ff5252;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-danger:hover {
+            background: rgba(255, 82, 82, 0.1);
+            color: #ffffff;
+            border-color: rgba(255, 82, 82, 0.5);
+        }
+
+        /* Updated Dropdown */
         .dropdown {
             position: relative;
             display: inline-block;
@@ -210,14 +543,15 @@
 
         .dropdown-menu {
             position: absolute;
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            background: rgba(30, 30, 30, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
             z-index: 1000;
             min-width: 200px;
             display: none;
             padding: 5px 0;
+            backdrop-filter: blur(10px);
         }
 
         .dropdown:hover .dropdown-menu {
@@ -227,18 +561,63 @@
         .dropdown-item {
             padding: 8px 12px;
             display: block;
-            color: #333;
+            color: #cccccc;
             text-decoration: none;
             white-space: nowrap;
+            transition: all 0.2s ease;
         }
 
         .dropdown-item:hover {
-            background: #f5f5f5;
+            background: rgba(255, 0, 0, 0.1);
+            color: #ffffff;
         }
 
+        /* Updated Filter Summary */
         .filter-summary {
-            background: #e8f4fd;
-            border-left: 4px solid #2196F3;
+            background: rgba(255, 0, 0, 0.05);
+            border-left: 4px solid rgba(255, 0, 0, 0.5);
+        }
+
+        /* Updated Stock Table */
+        #stockTable {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        #stockTable thead tr {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        #stockTable th {
+            padding: 12px;
+            text-align: left;
+            color: #cccccc;
+            font-weight: 600;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.05);
+        }
+
+        #stockTable td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        #stockTable tbody tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* Updated h4 styles */
+        h4 {
+            color: #ffffff;
+            font-size: 16px;
+            margin: 15px 0 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        h4 i {
+            color: #ff3333;
+            font-size: 14px;
         }
 
         /* Add responsive design for filters */
@@ -248,13 +627,8 @@
                 align-items: stretch;
             }
 
-            #restaurantFilter {
+            .form-control {
                 width: 100% !important;
-            }
-
-            .btn-outline-primary {
-                padding: 4px 8px;
-                font-size: 12px;
             }
 
             .stock-header {
@@ -268,6 +642,22 @@
                 gap: 10px;
                 align-items: flex-start;
             }
+        }
+
+        /* Animation for cards */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .report-section, .stat-card, .filter-section {
+            animation: fadeIn 0.5s ease-out;
         }
     </style>
 </head>
@@ -289,10 +679,10 @@
     <div class="stock-header">
         <div>
             <h2><i class="fas fa-boxes"></i> Gestion des Stocks</h2>
-            <p style="color: #666; margin-top: 5px;">Surveillez et gérez vos stocks en temps réel</p>
+            <p>Surveillez et gérez vos stocks en temps réel</p>
             <c:if test="${selectedRestaurantId != null}">
-                <div style="display: flex; align-items: center; gap: 8px; margin-top: 10px; padding: 8px 12px; background: #e8f4fd; border-radius: 4px; display: inline-flex;">
-                    <i class="fas fa-store" style="color: #2196F3;"></i>
+                <div style="display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; padding: 8px 12px; background: rgba(255, 0, 0, 0.1); border-radius: 6px; border: 1px solid rgba(255, 0, 0, 0.2);">
+                    <i class="fas fa-store" style="color: #ff3333;"></i>
                     <span>Filtre actif: <strong>${selectedRestaurantName}</strong></span>
                 </div>
             </c:if>
@@ -310,7 +700,7 @@
     <!-- Restaurant Filter Section -->
     <div class="filter-section">
         <div class="report-header">
-            <h3 style="margin: 0;"><i class="fas fa-filter"></i> Filtres</h3>
+            <h3><i class="fas fa-filter"></i> Filtres</h3>
         </div>
 
         <form method="get" action="${pageContext.request.contextPath}/stock" id="filterForm">
@@ -320,7 +710,6 @@
                         <i class="fas fa-store"></i> Restaurant
                     </label>
                     <select id="restaurantFilter" name="restaurantId" class="form-control"
-                            style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; width: 250px;"
                             onchange="document.getElementById('filterForm').submit()">
                         <option value="">Tous les restaurants</option>
                         <c:forEach var="restaurant" items="${restaurants}">
@@ -336,10 +725,10 @@
                     <label class="filter-label">
                         <i class="fas fa-info-circle"></i> Statut
                     </label>
-                    <div style="font-size: 14px; color: #666; padding: 8px 12px; background: #f8f9fa; border-radius: 4px; min-width: 200px;">
+                    <div style="font-size: 14px; color: #cccccc; padding: 8px 12px; background: rgba(255, 255, 255, 0.03); border-radius: 6px; min-width: 200px; border: 1px solid rgba(255, 255, 255, 0.05);">
                         <c:choose>
                             <c:when test="${selectedRestaurantId != null}">
-                                <i class="fas fa-check-circle" style="color: #4CAF50;"></i>
+                                <i class="fas fa-check-circle" style="color: #00c853;"></i>
                                 Filtre actif: <strong>${selectedRestaurantName}</strong>
                             </c:when>
                             <c:otherwise>
@@ -397,12 +786,12 @@
     <c:if test="${selectedRestaurantId != null}">
         <div class="report-section filter-summary">
             <div style="display: flex; align-items: center; gap: 15px;">
-                <div style="background: #2196F3; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <div style="background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%); color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
                     <i class="fas fa-store"></i>
                 </div>
                 <div>
-                    <h4 style="margin: 0;">Filtre actif: ${selectedRestaurantName}</h4>
-                    <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">
+                    <h4 style="margin: 0; color: #ffffff;">Filtre actif: ${selectedRestaurantName}</h4>
+                    <p style="margin: 5px 0 0 0; color: #aaaaaa; font-size: 14px;">
                         Affichage de ${stockList.size()} items de stock pour ce restaurant
                         <c:if test="${stockValue > 0}">
                             | Valeur totale: <fmt:formatNumber value="${stockValue}" type="currency" currencyCode="EUR"/>
@@ -459,7 +848,7 @@
     <!-- Simple Alerts Section -->
     <div class="report-section">
         <div class="report-header">
-            <h3 style="margin: 0;"><i class="fas fa-exclamation-triangle"></i> Alertes</h3>
+            <h3><i class="fas fa-exclamation-triangle"></i> Alertes</h3>
             <div class="report-actions">
                 <button class="btn btn-sm btn-warning" onclick="exportAlerts()">
                     <i class="fas fa-download"></i> Exporter
@@ -568,7 +957,7 @@
     <!-- Distribution Chart -->
     <div class="report-section">
         <div class="report-header">
-            <h3 style="margin: 0;">
+            <h3>
                 <i class="fas fa-chart-pie"></i>
                 <c:choose>
                     <c:when test="${selectedRestaurantId != null}">
@@ -593,7 +982,7 @@
     <!-- Stock Table -->
     <div class="report-section">
         <div class="report-header">
-            <h3 style="margin: 0;">
+            <h3>
                 <i class="fas fa-list"></i>
                 <c:choose>
                     <c:when test="${selectedRestaurantId != null}">
@@ -617,48 +1006,47 @@
         <div style="overflow-x: auto;">
             <table style="width: 100%; border-collapse: collapse;" id="stockTable">
                 <thead>
-                <tr style="background: #f4f4f4;">
-                    <th style="padding: 12px; text-align: left;">Ingrédient</th>
+                <tr style="background: rgba(255, 255, 255, 0.03);">
+                    <th style="padding: 12px; text-align: left; color: #cccccc;">Ingrédient</th>
                     <c:if test="${selectedRestaurantId == null}">
-                        <th style="padding: 12px; text-align: left;">Restaurant</th>
+                        <th style="padding: 12px; text-align: left; color: #cccccc;">Restaurant</th>
                     </c:if>
-                    <th style="padding: 12px; text-align: left;">Quantité</th>
-                    <th style="padding: 12px; text-align: left;">Niveau</th>
-                    <th style="padding: 12px; text-align: left;">Expiration</th>
-                    <th style="padding: 12px; text-align: left;">Lot</th>
-                    <th style="padding: 12px; text-align: left;">Valeur</th>
-                    <th style="padding: 12px; text-align: left;">Actions</th>
+                    <th style="padding: 12px; text-align: left; color: #cccccc;">Quantité</th>
+                    <th style="padding: 12px; text-align: left; color: #cccccc;">Niveau</th>
+                    <th style="padding: 12px; text-align: left; color: #cccccc;">Expiration</th>
+                    <th style="padding: 12px; text-align: left; color: #cccccc;">Lot</th>
+                    <th style="padding: 12px; text-align: left; color: #cccccc;">Valeur</th>
+                    <th style="padding: 12px; text-align: left; color: #cccccc;">Actions</th>
                 </tr>
                 </thead>
                 <tbody>
                 <c:forEach var="stock" items="${stockList}">
                     <c:if test="${stock.ingredient != null && stock.restaurant != null}">
-                        <tr>
+                        <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
                             <td style="padding: 12px;">
                                 <div style="display: flex; align-items: center; gap: 10px;">
-                                    <div style="width: 32px; height: 32px; border-radius: 8px; background: #f0f0f0; display: flex; align-items: center; justify-content: center;">
+                                    <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(255, 0, 0, 0.1); display: flex; align-items: center; justify-content: center; color: #ff3333;">
                                         <i class="fas fa-carrot"></i>
                                     </div>
                                     <div>
-                                        <strong>${stock.ingredient.name}</strong>
-                                        <div style="font-size: 12px; color: #666;">${stock.ingredient.category}</div>
+                                        <strong style="color: #ffffff;">${stock.ingredient.name}</strong>
+                                        <div style="font-size: 12px; color: #888888;">${stock.ingredient.category}</div>
                                     </div>
                                 </div>
                             </td>
                             <c:if test="${selectedRestaurantId == null}">
                                 <td style="padding: 12px;">
                                     <div style="display: flex; align-items: center; gap: 8px;">
-                                        <i class="fas fa-store" style="color: #2196F3;"></i>
-                                        <span>${stock.restaurant.name}</span>
+                                        <i class="fas fa-store" style="color: #ff3333;"></i>
+                                        <span style="color: #cccccc;">${stock.restaurant.name}</span>
                                     </div>
                                 </td>
                             </c:if>
                             <td style="padding: 12px;">
                                 <div class="quantity-editor">
                                     <input type="number" class="quantity-input" value="<fmt:formatNumber value='${stock.quantity}' maxFractionDigits='2'/>"
-                                           min="0" step="0.01" style="width: 80px; padding: 4px; border: 1px solid #ddd; border-radius: 4px;"
-                                           onchange="updateStockQuantity(${stock.id}, this.value)">
-                                    <span style="font-size: 12px; color: #666;">${stock.ingredient.unit}</span>
+                                           min="0" step="0.01" onchange="updateStockQuantity(${stock.id}, this.value)">
+                                    <span style="font-size: 12px; color: #888888;">${stock.ingredient.unit}</span>
                                 </div>
                             </td>
                             <td style="padding: 12px;">
@@ -700,12 +1088,12 @@
                                             <i class="far fa-calendar"></i>
                                             <fmt:formatDate value="${stock.expirationDate}" pattern="dd/MM/yyyy"/>
                                             <c:if test="${daysDiff >= 0}">
-                                                <span style="font-size: 11px;">(${Math.round(daysDiff)}j)</span>
+                                                <span style="font-size: 11px; color: #888888;">(${Math.round(daysDiff)}j)</span>
                                             </c:if>
                                         </div>
                                     </c:when>
                                     <c:otherwise>
-                                        <span style="color: #666; font-size: 12px;">Non défini</span>
+                                        <span style="color: #888888; font-size: 12px;">Non défini</span>
                                     </c:otherwise>
                                 </c:choose>
                             </td>
@@ -735,7 +1123,7 @@
                 </c:forEach>
                 <c:if test="${empty stockList}">
                     <tr>
-                        <td colspan="${selectedRestaurantId == null ? '8' : '7'}" style="text-align: center; padding: 40px; color: #999; font-style: italic;">
+                        <td colspan="${selectedRestaurantId == null ? '8' : '7'}" style="text-align: center; padding: 40px; color: #666666; font-style: italic;">
                             <c:choose>
                                 <c:when test="${selectedRestaurantId != null}">
                                     Aucun stock enregistré pour ce restaurant
@@ -753,6 +1141,7 @@
     </div>
 </div>
 
+<!-- Keep the existing JavaScript code exactly as it was, only updating styles -->
 <script>
     let distributionChart = null;
 
@@ -803,9 +1192,9 @@
             distributionChart.destroy();
         }
 
-        ctx.fillStyle = '#f5f5f5';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.02)';
         ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-        ctx.fillStyle = '#F44336';
+        ctx.fillStyle = '#ff5252';
         ctx.font = '16px Arial';
         ctx.textAlign = 'center';
         ctx.fillText(message, ctx.canvas.width / 2, ctx.canvas.height / 2);
@@ -858,9 +1247,17 @@
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        display: false
+                        display: false,
+                        labels: {
+                            color: '#ffffff'
+                        }
                     },
                     tooltip: {
+                        backgroundColor: 'rgba(30, 30, 30, 0.9)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff',
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        borderWidth: 1,
                         callbacks: {
                             label: function(context) {
                                 return `${context.dataset.label}: ${context.parsed.y.toFixed(2)} €`;
@@ -872,9 +1269,21 @@
                     y: {
                         beginAtZero: true,
                         ticks: {
+                            color: '#cccccc',
                             callback: function(value) {
                                 return value.toFixed(0) + ' €';
                             }
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.05)'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: '#cccccc'
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.05)'
                         }
                     }
                 }
@@ -943,10 +1352,16 @@
                         labels: {
                             padding: 20,
                             usePointStyle: true,
-                            pointStyle: 'circle'
+                            pointStyle: 'circle',
+                            color: '#ffffff'
                         }
                     },
                     tooltip: {
+                        backgroundColor: 'rgba(30, 30, 30, 0.9)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff',
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        borderWidth: 1,
                         callbacks: {
                             label: function(context) {
                                 const value = context.parsed;
@@ -963,9 +1378,9 @@
 
     function showNoDataMessage(message) {
         const ctx = document.getElementById('distributionChart').getContext('2d');
-        ctx.fillStyle = '#f5f5f5';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.02)';
         ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-        ctx.fillStyle = '#999';
+        ctx.fillStyle = '#888888';
         ctx.font = '16px Arial';
         ctx.textAlign = 'center';
         ctx.fillText(message, ctx.canvas.width / 2, ctx.canvas.height / 2);

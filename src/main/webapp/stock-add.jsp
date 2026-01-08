@@ -8,21 +8,285 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ajouter du Stock | Restaurant Supply Chain Optimizer</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        /* Apply the same base styles as the first page */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header Navigation - Same as first page */
+        .header {
+            background: rgba(15, 15, 15, 0.95);
+            border-radius: 12px;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(220, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header h1 {
+            color: #ff0000;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 600;
+        }
+
+        .header h1 i {
+            color: #ff3333;
+            font-size: 28px;
+        }
+
+        .header nav {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .header nav a {
+            color: #cccccc;
+            text-decoration: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid transparent;
+        }
+
+        .header nav a:hover {
+            color: #ffffff;
+            background: rgba(255, 0, 0, 0.1);
+            border-color: rgba(255, 0, 0, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .header nav a.active {
+            color: #ff0000;
+            background: rgba(255, 0, 0, 0.15);
+            border-color: rgba(255, 0, 0, 0.3);
+            font-weight: 600;
+        }
+
+        /* Card Styling - Same as other pages */
+        .card {
+            background: rgba(20, 20, 20, 0.9);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(220, 0, 0, 0.15);
+        }
+
+        /* Form Styles - Updated for dark theme */
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: rgba(255, 0, 0, 0.3);
+            box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .form-control::placeholder {
+            color: #888888;
+        }
+
+        select.form-control {
+            cursor: pointer;
+        }
+
+        select.form-control option {
+            background: rgba(30, 30, 30, 0.95);
+            color: #ffffff;
+            padding: 10px;
+        }
+
+        /* Buttons - Same styles */
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #00c853 0%, #007e33 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: linear-gradient(135deg, #00e676 0%, #008f40 100%);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #666666 0%, #444444 100%);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #888888 0%, #666666 100%);
+        }
+
+        /* Labels */
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #cccccc;
+        }
+
+        label span {
+            color: #ff5252;
+        }
+
+        /* Loading animation */
         .loading {
             display: none;
             text-align: center;
             padding: 20px;
+            color: #ff9800;
+            font-size: 14px;
         }
+
+        .loading i {
+            margin-right: 8px;
+        }
+
+        /* Error message - Updated for dark theme */
         .error-message {
-            color: #F44336;
-            background: #ffebee;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 15px;
+            color: #ff5252;
+            background: rgba(255, 82, 82, 0.1);
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
             display: none;
+            border: 1px solid rgba(255, 82, 82, 0.2);
+            font-size: 14px;
+        }
+
+        /* Value estimate display */
+        #valueEstimate {
+            color: #00bcd4;
+            font-weight: 600;
+        }
+
+        /* Page title */
+        h2 {
+            color: #ffffff;
+            font-size: 24px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        h2 i {
+            color: #ff3333;
+        }
+
+        /* Form group spacing */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        /* Helper text */
+        .helper-text {
+            font-size: 12px;
+            color: #888888;
+            margin-top: 5px;
+        }
+
+        /* Quantity input container */
+        .quantity-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 5px;
+        }
+
+        .quantity-container .form-control {
+            flex: 1;
+        }
+
+        #unitDisplay {
+            color: #00bcd4;
+            min-width: 60px;
+            font-weight: 500;
+            background: rgba(0, 188, 212, 0.1);
+            padding: 6px 12px;
+            border-radius: 6px;
+            text-align: center;
+            border: 1px solid rgba(0, 188, 212, 0.2);
+        }
+
+        /* Animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card {
+            animation: fadeIn 0.5s ease-out;
         }
     </style>
 </head>
@@ -34,14 +298,14 @@
             <a href="dashboard"><i class="fas fa-home"></i> Dashboard</a>
             <a href="ingredients"><i class="fas fa-carrot"></i> Ingrédients</a>
             <a href="restaurants"><i class="fas fa-store"></i> Restaurants</a>
-            <a href="stock"><i class="fas fa-boxes"></i> Stocks</a>
+            <a href="stock" class="active"><i class="fas fa-boxes"></i> Stocks</a>
             <a href="waste"><i class="fas fa-trash"></i> Pertes</a>
         </nav>
     </header>
 
     <div style="max-width: 600px; margin: 30px auto;">
         <div class="card">
-            <h2 style="margin-bottom: 20px;">
+            <h2>
                 <i class="fas fa-plus-circle"></i> Ajouter du Stock
             </h2>
 
@@ -49,9 +313,9 @@
 
             <!-- CHANGE: Remove form action and handle everything in JavaScript -->
             <form id="stockForm" method="POST">
-                <div style="margin-bottom: 15px;">
-                    <label for="restaurant" style="display: block; margin-bottom: 5px; font-weight: 500;">
-                        Restaurant <span style="color: #F44336;">*</span>
+                <div class="form-group">
+                    <label for="restaurant">
+                        Restaurant <span>*</span>
                     </label>
                     <select id="restaurant" name="restaurantId" class="form-control" required>
                         <option value="">Sélectionner un restaurant</option>
@@ -61,9 +325,9 @@
                     </select>
                 </div>
 
-                <div style="margin-bottom: 15px;">
-                    <label for="ingredient" style="display: block; margin-bottom: 5px; font-weight: 500;">
-                        Ingrédient <span style="color: #F44336;">*</span>
+                <div class="form-group">
+                    <label for="ingredient">
+                        Ingrédient <span>*</span>
                     </label>
                     <select id="ingredient" name="ingredientId" class="form-control" required>
                         <option value="">Sélectionner un ingrédient</option>
@@ -77,40 +341,39 @@
                     </select>
                 </div>
 
-                <div style="margin-bottom: 15px;">
-                    <label for="quantity" style="display: block; margin-bottom: 5px; font-weight: 500;">
-                        Quantité <span style="color: #F44336;">*</span>
+                <div class="form-group">
+                    <label for="quantity">
+                        Quantité <span>*</span>
                     </label>
-                    <div style="display: flex; align-items: center; gap: 10px;">
+                    <div class="quantity-container">
                         <input type="number" id="quantity" name="quantity" class="form-control"
-                               step="0.01" min="0.01" value="1.00" required style="flex: 1;">
-                        <span id="unitDisplay" style="color: #666; min-width: 60px;">-</span>
+                               step="0.01" min="0.01" value="1.00" required>
+                        <span id="unitDisplay">-</span>
                     </div>
-                    <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                    <div class="helper-text">
                         Valeur estimée: <span id="valueEstimate">0.00 €</span>
                     </div>
                 </div>
 
-                <div style="margin-bottom: 15px;">
-                    <label for="expirationDate" style="display: block; margin-bottom: 5px; font-weight: 500;">
+                <div class="form-group">
+                    <label for="expirationDate">
                         Date d'expiration
                     </label>
-                    <input type="date" id="expirationDate" name="expirationDate" class="form-control"
-                           min="${pageContext.request.contextPath}/getTomorrowDate()">
-                    <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                    <input type="date" id="expirationDate" name="expirationDate" class="form-control">
+                    <div class="helper-text">
                         Format: AAAA-MM-JJ
                     </div>
                 </div>
 
-                <div style="margin-bottom: 20px;">
-                    <label for="batchNumber" style="display: block; margin-bottom: 5px; font-weight: 500;">
+                <div class="form-group">
+                    <label for="batchNumber">
                         Numéro de lot
                     </label>
                     <input type="text" id="batchNumber" name="batchNumber" class="form-control"
                            placeholder="Ex: LOT-2024-001">
                 </div>
 
-                <div style="display: flex; gap: 10px;">
+                <div style="display: flex; gap: 10px; margin-top: 30px;">
                     <button type="submit" class="btn btn-success" style="flex: 1;" id="submitBtn">
                         <i class="fas fa-save"></i> Enregistrer
                     </button>
@@ -139,6 +402,9 @@
     document.addEventListener('DOMContentLoaded', function() {
         const expirationDateInput = document.getElementById('expirationDate');
         expirationDateInput.min = getTomorrowDate();
+
+        // Initialize value estimate
+        updateValueEstimate();
     });
 
     // Mettre à jour l'unité quand l'ingrédient change
