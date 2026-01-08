@@ -438,7 +438,6 @@
             <a href="ingredients"><i class="fas fa-carrot"></i> Ingrédients</a>
             <a href="restaurants" class="active"><i class="fas fa-store"></i> Restaurants</a>
             <a href="stock"><i class="fas fa-boxes"></i> Stocks</a>
-            <a href="waste"><i class="fas fa-trash"></i> Pertes</a>
         </nav>
     </header>
 

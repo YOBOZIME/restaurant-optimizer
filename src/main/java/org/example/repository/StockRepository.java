@@ -29,6 +29,17 @@ public class StockRepository {
         ).getResultList();
     }
 
+    public List<RestaurantStock> findByRestaurantId(Long restaurantId) {
+        return em.createQuery(
+                        "SELECT rs FROM RestaurantStock rs " +
+                                "JOIN FETCH rs.ingredient " + // PAS d'alias
+                                "WHERE rs.restaurant.id = :restaurantId " +
+                                "ORDER BY rs.expirationDate",
+                        RestaurantStock.class
+                ).setParameter("restaurantId", restaurantId)
+                .getResultList();
+    }
+
     public RestaurantStock findById(Long id) {
         return em.find(RestaurantStock.class, id);
     }
@@ -49,22 +60,12 @@ public class StockRepository {
         }
     }
 
-    public List<RestaurantStock> findByRestaurantId(Long restaurantId) {
-        return em.createQuery(
-                        "SELECT rs FROM RestaurantStock rs " +
-                                "JOIN FETCH rs.ingredient " +
-                                "JOIN FETCH rs.restaurant " +
-                                "WHERE rs.restaurant.id = :restaurantId " +
-                                "ORDER BY rs.expirationDate",
-                        RestaurantStock.class
-                ).setParameter("restaurantId", restaurantId)
-                .getResultList();
-    }
-
     public List<RestaurantStock> findNearExpiration() {
         Date threshold = new Date(System.currentTimeMillis() + 48 * 60 * 60 * 1000); // 48h
         return em.createQuery(
                         "SELECT rs FROM RestaurantStock rs " +
+                                "JOIN FETCH rs.ingredient " + // PAS d'alias ici
+                                "JOIN FETCH rs.restaurant " + // PAS d'alias ici
                                 "WHERE rs.expirationDate <= :threshold " +
                                 "ORDER BY rs.expirationDate",
                         RestaurantStock.class
@@ -75,6 +76,8 @@ public class StockRepository {
     public List<RestaurantStock> findExpiringBetween(Date startDate, Date endDate) {
         return em.createQuery(
                         "SELECT rs FROM RestaurantStock rs " +
+                                "JOIN FETCH rs.ingredient " + // PAS d'alias
+                                "JOIN FETCH rs.restaurant " + // PAS d'alias
                                 "WHERE rs.expirationDate BETWEEN :startDate AND :endDate " +
                                 "ORDER BY rs.expirationDate",
                         RestaurantStock.class

@@ -671,7 +671,6 @@
             <a href="ingredients"><i class="fas fa-carrot"></i> Ingrédients</a>
             <a href="restaurants"><i class="fas fa-store"></i> Restaurants</a>
             <a href="stock" class="active"><i class="fas fa-boxes"></i> Stocks</a>
-            <a href="waste"><i class="fas fa-trash"></i> Pertes</a>
         </nav>
     </header>
 
@@ -1764,9 +1763,7 @@
             '<p>Valeur totale: ' + totalValue + '</p>' +
             '</div>' +
             printContent +
-            '<div class="footer">' +
-            '<p>Généré par Restaurant Supply Chain Optimizer</p>' +
-            '</div>' +
+
             '</body>' +
             '</html>';
 
